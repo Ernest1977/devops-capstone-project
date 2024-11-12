@@ -8,6 +8,7 @@ from flask import jsonify, request, make_response, abort, url_for   # noqa; F401
 from service.models import Account
 from service.common import status  # HTTP Status Codes
 from . import app  # Import Flask application
+import json
 
 
 ############################################################
@@ -15,7 +16,9 @@ from . import app  # Import Flask application
 ############################################################
 @app.route("/health")
 def health():
-    """Health Status"""
+    """
+    Health Status
+    """
     return jsonify(dict(status="OK")), status.HTTP_200_OK
 
 
@@ -24,7 +27,9 @@ def health():
 ######################################################################
 @app.route("/")
 def index():
-    """Root URL response"""
+    """
+    Root URL response
+    """
     return (
         jsonify(
             name="Account REST API Service",
@@ -44,6 +49,7 @@ def create_accounts():
     Creates an Account
     This endpoint will create an Account based the data in the body that is posted
     """
+    
     app.logger.info("Request to create an Account")
     check_content_type("application/json")
     account = Account()
@@ -53,45 +59,54 @@ def create_accounts():
     # Uncomment once get_accounts has been implemented
     # location_url = url_for("get_accounts", account_id=account.id, _external=True)
     location_url = "/"  # Remove once get_accounts has been implemented
+    
     return make_response(
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
+
 
 ######################################################################
 # LIST ALL ACCOUNTS
 ######################################################################
 
-# ... place you code here to LIST accounts ...
 
 
 ######################################################################
 # READ AN ACCOUNT
 ######################################################################
-
-# ... place you code here to READ an account ...
+@app.route("/accounts/<int:account_id>", methods=["GET"])
+def get_accounts(account_id):
+    """
+    Reads an Account
+    This endpoint will read an Account based on the account_id that is requested
+    """
+    app.logger.info("Request to read an Account with id: %s", account_id)
+    account = Account.find(account_id)
+    
+    if not account:
+        abort(status.HTTP_404_NOT_FOUND, f"Account with id [{account_id}] could not be found.")
+    return account.serialize(), status.HTTP_200_OK
 
 
 ######################################################################
 # UPDATE AN EXISTING ACCOUNT
 ######################################################################
 
-# ... place you code here to UPDATE an account ...
 
 
 ######################################################################
 # DELETE AN ACCOUNT
 ######################################################################
 
-# ... place you code here to DELETE an account ...
 
 
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
-
-
 def check_content_type(media_type):
-    """Checks that the media type is correct"""
+    """
+    Checks that the media type is correct
+    """
     content_type = request.headers.get("Content-Type")
     if content_type and content_type == media_type:
         return
